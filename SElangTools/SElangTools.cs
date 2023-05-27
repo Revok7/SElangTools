@@ -27,12 +27,67 @@ namespace SElangTools
 
     class SElangTools
     {
-        readonly static string _SElangTools_naglowek = "SElangTools v.1.02 by Revok (2023)";
+
+
+        readonly static string _SElangTools_naglowek = "SElangTools v.1.03 by Revok (2023)";
 
         const string skrypt = "SElangTools.cs";
         static public string folderglownyprogramu = Directory.GetCurrentDirectory();
 
         static DateTime aktualny_czas = DateTime.Now;
+
+
+        public class RekordJSON : IEquatable<RekordJSON>, IComparable<RekordJSON>
+        //klasa dla danych wczytywanych z plików .json zawierających lokalizację gry
+        {
+            public int ID { get; set; }
+
+            public string Plik { get; set; }
+            public string Klucz { get; set; }
+            public string String { get; set; }
+
+            public override string ToString()
+            {
+                return "ID: " + ID + "\n" + "Plik: " + Plik + "\n" + "Klucz: " + Klucz + "\n" + "String: " + String;
+            }
+            public override bool Equals(object obiekt)
+            {
+                if (obiekt == null) return false;
+                RekordJSON obiektrekordu = obiekt as RekordJSON;
+                if (obiektrekordu == null) return false;
+                else return Equals(obiektrekordu);
+            }
+
+            /*
+            public int SortujRosnacoWedlugNazwy(string nazwa1, string nazwa2)
+            {
+
+                return nazwa1.CompareTo(nazwa2);
+            }
+            */
+
+            // Domyślny komparator dla typu Rekord.
+            public int CompareTo(RekordJSON porownaniezRekordem)
+            {
+                // Wartość null oznacza, że ten obiekt jest większy.
+                if (porownaniezRekordem == null)
+                    return 1;
+
+                else
+                    return this.ID.CompareTo(porownaniezRekordem.ID);
+            }
+
+            public override int GetHashCode()
+            {
+                return ID;
+            }
+            public bool Equals(RekordJSON other)
+            {
+                if (other == null) return false;
+                return (this.ID.Equals(other.ID));
+            }
+            // Powinien również nadpisać operatory == i !=.
+        }
 
 
 
@@ -207,12 +262,14 @@ namespace SElangTools
                 Console.WriteLine(_SElangTools_naglowek);
 
                 Console.WriteLine("WAŻNE: Pliki poddawane operacjom muszą zostać skopiowane wcześniej do folderu z tym programem.");
-                Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine("UWAGA!: W celu konwertowania plików pochodzących z platformy Transifex oraz wdrażania aktualizacji (w formacie JSON) należy używać narzędzi PWRlangTools oraz PWRlangConverter z metadanymi dla gry Space Engineers."); Console.ResetColor();
+                Console.ForegroundColor = ConsoleColor.Yellow; Console.WriteLine("UWAGA!: W celu konwertowania plików pochodzących z platformy Transifex oraz wdrażania aktualizacji (w formacie JSON) należy używać narzędzi PWRlangTools oraz PWRlangConverter z metadanymi dla gry Space Engineers."); Console.ResetColor();
                 Console.WriteLine("---[SpaceEngineers_PL]:");
                 Console.WriteLine("1. [JSON->RESX] Konwersja pliku lokalizacyjnego JSON do RESX. ");
-                Console.WriteLine("-");
+                Console.WriteLine(" ");
                 Console.WriteLine("2. [RESX->KeyValueJSON->JSON] Konwersja pliku lokalizacyjnego RESX do JSON.");
                 Console.WriteLine("3. [1xJSON->2xTransifex.com.TXT] Konwersja pliku JSON do plików TXT przeznaczonych dla platformy Transifex.com (z identyfikatorami numerów linii według pliku JSON).");
+                Console.WriteLine(" ");
+                Console.WriteLine("4. [2xJSON->JSON] Przeniesienie treści stringów ze źródłowego pliku JSON według szablonu do nowego pliku JSON.");
                 Console.WriteLine("---------------------------------------");
                 Console.Write("Wpisz numer operacji, którą chcesz wykonać: ");
                 numer_operacji_string = Console.ReadLine();
@@ -234,6 +291,10 @@ namespace SElangTools
                     else if (numer_operacji_int == 3)
                     {
                         JSONtoTXTTransifexCOM_ZNumeramiLiniiZPlikuJSON();
+                    }
+                    else if (numer_operacji_int == 4)
+                    {
+                        JSONplusJSONtoJSON_PrzeniesienieStringowWedlugSzablonu_v2();
                     }
 
                     else
@@ -571,6 +632,18 @@ namespace SElangTools
 
             return rezultat;
         }
+
+        public static string FiltrujString(string tresc_stringa)
+        //stringi wczytane poprzez moduł JSON muszą zostać przefiltrowane przez zapisaniem w zmiennych/listach danych itd.
+        {
+            return tresc_stringa.Replace("\n", "\\n")
+                   .Replace("\"", "\\\"")
+                   .Replace("\t", "\\t")
+                   .Replace("\\\\", "\\\\\\");
+
+        }
+
+
         public static string FiltrujStringDoZapisuWRESX(string tresc_stringa)
         //stringi dla RESX muszą zostać przefiltrowane przez zapisaniem w plikach
         {
@@ -634,6 +707,47 @@ namespace SElangTools
                 Blad("Nie istnieje plik o nazwie \"" + nazwaplikuRESX + "\".");
             }
 
+        }
+
+        private static List<RekordJSON> WczytajDaneZPlikuJSONdoListyRekordow(string nazwa_pliku_JSON)
+        {
+            List<RekordJSON> danezplikuJSON_listarekordow = new List<RekordJSON>();
+
+            if (File.Exists(nazwa_pliku_JSON))
+            {
+
+                dynamic[] danezplikuJSON_tablicalistdanych = JSON.WczytajStaleIIchWartosciZPlikuJSON_v1(nazwa_pliku_JSON);
+
+                List<dynamic> danezplikuJSON_listakluczy = danezplikuJSON_tablicalistdanych[0];
+                List<List<dynamic>> danezplikuJSON_listastringow = danezplikuJSON_tablicalistdanych[1];
+
+                for (int i2b = 0; i2b < danezplikuJSON_listakluczy.Count(); i2b++)
+                {
+
+                    if (i2b != 0 && i2b != 1) //odfiltrowanie pierwszych dwóch rekordów zawierających słowa, wczytane z pliku JSON, takie jak: "$id", "string", "1"
+                    {
+                        for (int i2c = 0; i2c < danezplikuJSON_listastringow[i2b].Count(); i2c++)
+                        {
+
+                            int _ID = i2b + 2;
+                            string _Plik = nazwa_pliku_JSON;
+                            string _Klucz = danezplikuJSON_listakluczy[i2b];
+                            string _String = FiltrujString(danezplikuJSON_listastringow[i2b][i2c]);
+
+                            //Console.WriteLine("[DEBUG] " + _ID + "|" + _Plik + "|" + _Klucz + "|" + _String);
+
+                            danezplikuJSON_listarekordow.Add(new RekordJSON { ID = _ID, Plik = _Plik, Klucz = _Klucz, String = _String });
+
+                        }
+
+                    }
+
+
+                }
+
+            }
+
+            return danezplikuJSON_listarekordow;
         }
 
 
@@ -1186,6 +1300,116 @@ namespace SElangTools
 
         }
 
+        public static void JSONplusJSONtoJSON_PrzeniesienieStringowWedlugSzablonu_v2()
+        {
+            Console.Write("Podaj nazwę źródłowego pliku JSON, z którego ma zostać przeniesiona treść stringów: ");
+            string plikJSONzrodlowy_nazwa = Console.ReadLine();
+            if (plikJSONzrodlowy_nazwa == "") { plikJSONzrodlowy_nazwa = "test1.json"; }
+
+            Console.Write("Podaj nazwę szablonowego pliku JSON, według którego ma zostać utworzony nowy plik: ");
+            string plikJSONszablonowy_nazwa = Console.ReadLine();
+            if (plikJSONszablonowy_nazwa == "") { plikJSONszablonowy_nazwa = "test2.json"; }
+
+            string plikJSONdocelowy_nazwa = "NOWY_" + plikJSONszablonowy_nazwa;
+            if (File.Exists(plikJSONdocelowy_nazwa)) { File.Delete(plikJSONdocelowy_nazwa); }
+
+            if (File.Exists(plikJSONzrodlowy_nazwa) && File.Exists(plikJSONszablonowy_nazwa))
+            {
+                List<RekordJSON> plikJSONzrodlowy_listarekordow = WczytajDaneZPlikuJSONdoListyRekordow(plikJSONzrodlowy_nazwa);
+                List<RekordJSON> plikJSONszablonowy_listarekordow = WczytajDaneZPlikuJSONdoListyRekordow(plikJSONszablonowy_nazwa);
+                List<RekordJSON> plikJSONdocelowy_listarekordow = new List<RekordJSON>();
+
+                //int aktualnyID_dlaplikudocelowegoJSON = 0 + 2;
+
+                for (int wr = 0; wr < plikJSONszablonowy_listarekordow.Count(); wr++)
+                {
+                    List<RekordJSON> lista_znalezioneklucze_wplikuJSONzrodlowym = plikJSONzrodlowy_listarekordow.FindAll(x => x.Klucz == plikJSONszablonowy_listarekordow[wr].Klucz);
+
+                    if (lista_znalezioneklucze_wplikuJSONzrodlowym.Count() == 1)
+                    {
+
+                        //Console.WriteLine("[DEBUG] Znaleziono klucz: " + lista_znalezioneklucze_wplikuJSONzrodlowym[0].Klucz);
+
+                        plikJSONdocelowy_listarekordow.Add(new RekordJSON { ID = plikJSONszablonowy_listarekordow[wr].ID, Plik = plikJSONdocelowy_nazwa, Klucz = lista_znalezioneklucze_wplikuJSONzrodlowym[0].Klucz, String = lista_znalezioneklucze_wplikuJSONzrodlowym[0].String });
+
+                        //aktualnyID_dlaplikudocelowegoJSON++;
+
+                    }
+                    else if (lista_znalezioneklucze_wplikuJSONzrodlowym.Count() == 0)
+                    {
+
+                        plikJSONdocelowy_listarekordow.Add(new RekordJSON { ID = plikJSONszablonowy_listarekordow[wr].ID, Plik = plikJSONdocelowy_nazwa, Klucz = plikJSONszablonowy_listarekordow[wr].Klucz, String = plikJSONszablonowy_listarekordow[wr].Klucz });
+                    
+                    }
+                    else
+                    {
+                        Blad("Krytyczny błąd: W pliku źródłowym JSON występuje więcej niż 1 string zawierający ten sam klucz o wartości: \"" + lista_znalezioneklucze_wplikuJSONzrodlowym[wr].Klucz + "\".");
+                    }
+
+                }
+
+                bool czy_utworzono_naglowek = UtworzNaglowekJSON(plikJSONdocelowy_nazwa);
+
+                if (czy_utworzono_naglowek == true)
+                {
+                    FileStream plikJSONdocelowy_fs = new FileStream(plikJSONdocelowy_nazwa, FileMode.Append, FileAccess.Write);
+
+                    try
+                    {
+                        StreamWriter plikJSONdocelowy_sw = new StreamWriter(plikJSONdocelowy_fs);
+
+                        for (int zd = 0; zd < plikJSONdocelowy_listarekordow.Count(); zd++)
+                        {
+
+                            string _KLUCZ = plikJSONdocelowy_listarekordow[zd].Klucz;
+                            string _STRING = plikJSONdocelowy_listarekordow[zd].String;
+
+                            plikJSONdocelowy_sw.Write(/*"[DEBUG-ID: " + plikJSONdocelowy_listarekordow[zd].ID + "] " + */"    \"" + _KLUCZ + "\": \"" + _STRING + "\"");
+
+                            if (zd + 1 != plikJSONdocelowy_listarekordow.Count())
+                            {
+                                plikJSONdocelowy_sw.Write(",");
+                            }
+
+                            plikJSONdocelowy_sw.Write("\n");
+
+                        }
+
+                        plikJSONdocelowy_sw.Close();
+                    }
+                    catch
+                    {
+                        Blad("Wystąpił problem z zapisem do nowogenerowanego pliku JSON: " + plikJSONdocelowy_nazwa);
+                    }
+
+                    plikJSONdocelowy_fs.Close();
+
+                    bool czy_utworzono_stopke = UtworzStopkeJSON(plikJSONdocelowy_nazwa);
+
+                    if (czy_utworzono_stopke == true)
+                    {
+                        Sukces("Plik JSON o nazwie \"" + plikJSONdocelowy_nazwa + "\" został wygenerowany.");
+                    }
+                    else
+                    {
+                        Blad("BŁĄD: Wystąpił problem z utworzeniem stopki w nowogenerowanym pliku JSON: " + plikJSONdocelowy_nazwa);
+                    }
+
+                }
+                else
+                {
+                    Blad("BŁĄD: Wystąpił problem z utworzeniem nagłówka w nowogenerowanym pliku JSON: " + plikJSONdocelowy_nazwa);
+                }
+
+            }
+            else
+            {
+                Blad("BŁĄD: Nie istnieje przynajmniej jeden ze wskazanych plików.");
+            }
+
+        }
+
 
     }
+
 }
