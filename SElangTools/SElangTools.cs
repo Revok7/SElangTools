@@ -27,7 +27,7 @@ namespace SElangTools
 
     class SElangTools
     {
-        readonly static string _SElangTools_naglowek = "SElangTools v.1.00 by Revok (2023)";
+        readonly static string _SElangTools_naglowek = "SElangTools v.1.01 by Revok (2023)";
 
         const string skrypt = "SElangTools.cs";
         static public string folderglownyprogramu = Directory.GetCurrentDirectory();
