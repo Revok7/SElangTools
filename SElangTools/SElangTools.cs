@@ -27,7 +27,7 @@ namespace SElangTools
 
     class SElangTools
     {
-        readonly static string _SElangTools_naglowek = "SElangTools v.1.01 by Revok (2023)";
+        readonly static string _SElangTools_naglowek = "SElangTools v.1.02 by Revok (2023)";
 
         const string skrypt = "SElangTools.cs";
         static public string folderglownyprogramu = Directory.GetCurrentDirectory();
@@ -207,7 +207,7 @@ namespace SElangTools
                 Console.WriteLine(_SElangTools_naglowek);
 
                 Console.WriteLine("WAŻNE: Pliki poddawane operacjom muszą zostać skopiowane wcześniej do folderu z tym programem.");
-                Console.ForegroundColor = ConsoleColor.Red; Console.Write("UWAGA!: W celu konwertowania plików pochodzących z platformy Transifex oraz wdrażania aktualizacji (w formacie JSON) należy używać narzędzi PWRlangTools oraz PWRlangConverter z metadanymi dla gry Space Engineers."); Console.ResetColor();
+                Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine("UWAGA!: W celu konwertowania plików pochodzących z platformy Transifex oraz wdrażania aktualizacji (w formacie JSON) należy używać narzędzi PWRlangTools oraz PWRlangConverter z metadanymi dla gry Space Engineers."); Console.ResetColor();
                 Console.WriteLine("---[SpaceEngineers_PL]:");
                 Console.WriteLine("1. [JSON->RESX] Konwersja pliku lokalizacyjnego JSON do RESX. ");
                 Console.WriteLine("-");
