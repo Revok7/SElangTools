@@ -29,7 +29,7 @@ namespace SElangTools
     {
 
 
-        readonly static string _SElangTools_naglowek = "SElangTools v.1.03 by Revok (2023)";
+        readonly static string _SElangTools_naglowek = "SElangTools v.1.04 by Revok (2023)";
 
         const string skrypt = "SElangTools.cs";
         static public string folderglownyprogramu = Directory.GetCurrentDirectory();
@@ -1338,7 +1338,7 @@ namespace SElangTools
                     else if (lista_znalezioneklucze_wplikuJSONzrodlowym.Count() == 0)
                     {
 
-                        plikJSONdocelowy_listarekordow.Add(new RekordJSON { ID = plikJSONszablonowy_listarekordow[wr].ID, Plik = plikJSONdocelowy_nazwa, Klucz = plikJSONszablonowy_listarekordow[wr].Klucz, String = plikJSONszablonowy_listarekordow[wr].Klucz });
+                        plikJSONdocelowy_listarekordow.Add(new RekordJSON { ID = plikJSONszablonowy_listarekordow[wr].ID, Plik = plikJSONdocelowy_nazwa, Klucz = plikJSONszablonowy_listarekordow[wr].Klucz, String = plikJSONszablonowy_listarekordow[wr].String });
                     
                     }
                     else
