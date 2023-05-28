@@ -29,7 +29,7 @@ namespace SElangTools
     {
 
 
-        readonly static string _SElangTools_naglowek = "SElangTools v.1.04 by Revok (2023)";
+        readonly static string _SElangTools_naglowek = "SElangTools v.1.05 by Revok (2023)";
 
         const string skrypt = "SElangTools.cs";
         static public string folderglownyprogramu = Directory.GetCurrentDirectory();
@@ -996,7 +996,7 @@ namespace SElangTools
 
             Console.Write("Podaj nazwę pliku JSON: ");
             nazwaplikuJSON = Console.ReadLine();
-            if (nazwaplikuJSON == "") { nazwaplikuJSON = "NOWY_MyTexts.pl-PL.json"; }
+            if (nazwaplikuJSON == "") { nazwaplikuJSON = "test1.json"; }
             Console.WriteLine("Podano nazwę pliku: " + nazwaplikuJSON);
             if (File.Exists(nazwaplikuJSON))
             {
