@@ -29,7 +29,7 @@ namespace SElangTools
     {
 
 
-        readonly static string _SElangTools_naglowek = "SElangTools v.1.05 by Revok (2023)";
+        readonly static string _SElangTools_naglowek = "SElangTools v.1.06 by Revok (2023)";
 
         const string skrypt = "SElangTools.cs";
         static public string folderglownyprogramu = Directory.GetCurrentDirectory();
@@ -290,7 +290,7 @@ namespace SElangTools
                     }
                     else if (numer_operacji_int == 3)
                     {
-                        JSONtoTXTTransifexCOM_ZNumeramiLiniiZPlikuJSON();
+                        JSONtoTXTTransifexCOM_ZNumeramiLiniiZPlikuJSON_v2();
                     }
                     else if (numer_operacji_int == 4)
                     {
@@ -990,7 +990,7 @@ namespace SElangTools
 
         }
 
-        public static void JSONtoTXTTransifexCOM_ZNumeramiLiniiZPlikuJSON()
+        public static void JSONtoTXTTransifexCOM_ZNumeramiLiniiZPlikuJSON_v2()
         {
             string nazwaplikuJSON;
 
@@ -1000,8 +1000,6 @@ namespace SElangTools
             Console.WriteLine("Podano nazwę pliku: " + nazwaplikuJSON);
             if (File.Exists(nazwaplikuJSON))
             {
-                uint plik_JSON_liczbalinii = PoliczLiczbeLinii(nazwaplikuJSON);
-
                 //Console.WriteLine("Istnieje podany plik.");
                 FileStream plik_JSON_fs = new FileStream(nazwaplikuJSON, FileMode.Open, FileAccess.Read);
                 FileStream nowy_plik_transifexCOMkeystxt_fs = new FileStream(nazwaplikuJSON + ".keysTransifexCOM.txt", FileMode.Create, FileAccess.ReadWrite);
@@ -1009,266 +1007,57 @@ namespace SElangTools
 
                 try
                 {
-                    int ilosc_wykrytych_STRINGS = 0;
-                    int ilosc_wykrytych_VARS = 0;
-                    List<List<string>> vars_tmp = new List<List<string>>(); //skladnia vars_tmp[numer_linii][0:key||1:ciag_zmiennych]
-                    const char separator = ';';
 
+                    dynamic[] danezplikuJSON_tablicalistdanych = JSON.WczytajStaleIIchWartosciZPlikuJSON_v1(nazwaplikuJSON);
+                    List<dynamic> danezplikuJSON_listakluczy = danezplikuJSON_tablicalistdanych[0];
+                    List<List<dynamic>> danezplikuJSON_listastringow = danezplikuJSON_tablicalistdanych[1];
 
                     StreamReader plik_JSON_sr = new StreamReader(plik_JSON_fs);
-                    StreamWriter nowy_plik_transifexCOMkeystxt_sr = new StreamWriter(nowy_plik_transifexCOMkeystxt_fs);
-                    StreamWriter nowy_plik_transifexCOMstringstxt_sr = new StreamWriter(nowy_plik_transifexCOMstringstxt_fs);
+                    StreamWriter nowy_plik_transifexCOMkeystxt_sw = new StreamWriter(nowy_plik_transifexCOMkeystxt_fs);
+                    StreamWriter nowy_plik_transifexCOMstringstxt_sw = new StreamWriter(nowy_plik_transifexCOMstringstxt_fs);
 
-                    int plik_JSON_linia = 1;
-                    while (plik_JSON_sr.Peek() != -1)
+                    int _ID = 4;
+                    for (int iv1 = 0; iv1 < danezplikuJSON_listakluczy.Count; iv1++)
                     {
-                        string tresc_linii_JSON = plik_JSON_sr.ReadLine();
+                        int aktualnynumerlinii = iv1 + 1;
 
-                        string tresclinii_ciagzmiennych = "";
-
-                        vars_tmp.Add(new List<string>());
-
-
-                        string[] linia_podzial_1 = tresc_linii_JSON.Split(new string[] { "\": \"" }, StringSplitOptions.None);
-
-                        /*
-                        for (int a1 = 0; a1 < linia_podzial_1.Length; a1++)
+                        for (int iv2 = 0; iv2 < danezplikuJSON_listastringow[iv1].Count; iv2++)
                         {
+                            //Console.WriteLine("danezplikuJSON_listastringow[" + iv1 + "][" + iv2 + "]: " + danezplikuJSON_listastringow[iv1][iv2]);
 
-                            //Console.WriteLine("linia_podzial_1[" + a1 + "]: " + linia_podzial_1[a1]);
-                        }
-                        */
-
-                        //Console.WriteLine("[linia:" + plik_JSON_linia + "] linia_podzial_1.Length: " + linia_podzial_1.Length);
-
-                        if (linia_podzial_1.Length <= 2)
-                        {
-                            string KEYt1 = linia_podzial_1[0].Trim();
-                            int KEYt1_iloscznakow = KEYt1.Length;
-
-                            if (KEYt1_iloscznakow >= 2)
+                            if (danezplikuJSON_listakluczy[iv1] != "$id" && danezplikuJSON_listastringow[iv1][iv2] != "1")
                             {
+                                string _KLUCZ = FiltrujString(danezplikuJSON_listakluczy[iv1]);
+                                string _STRING = FiltrujString(danezplikuJSON_listastringow[iv1][iv2])
+                                                 .Replace("\\n", "<br>")
+                                                 .Replace("\\\"", "<bs_n1>")
+                                                 .Replace("\\\\", "/")
+                                                 ;
 
-                                string[] linia_2_separatory = { KEYt1 + "\": \"" };
+                                nowy_plik_transifexCOMkeystxt_sw.WriteLine(_KLUCZ);
+                                nowy_plik_transifexCOMstringstxt_sw.WriteLine("<" + _ID + ">" + _STRING);
 
-                                string[] linia_podzial_2 = tresc_linii_JSON.Split(linia_2_separatory, StringSplitOptions.None);
-
-                                /*
-                                for (int a2 = 0; a2 < linia_podzial_2.Length; a2++)
-                                {
-
-                                    Console.WriteLine("linia_podzial_2[" + a2 + "]: " + linia_podzial_2[a2]);
-                                }
-                                */
-
-                                //Console.WriteLine("[linia:" + plik_JSON_linia + "] linia_podzial_2.Length: " + linia_podzial_2.Length);
-
-                                if (linia_podzial_2.Length >= 2)
-                                {
-
-                                    string STRINGt1 = linia_podzial_2[1].TrimEnd();
-                                    int STRINGt1_iloscznakow = STRINGt1.Length;
-
-
-                                    //Console.WriteLine("[linia:" + plik_JSON_linia + "] KEYt1_iloscznakow: " + KEYt1_iloscznakow);
-                                    //Console.WriteLine("[linia:" + plik_JSON_linia + "] STRINGt1_iloscznakow: " + STRINGt1_iloscznakow);
-
-
-                                    if (KEYt1_iloscznakow >= 2 && STRINGt1_iloscznakow >= 1)
-                                    {
-                                        string KEY = KEYt1.Remove(0, 1);
-
-                                        int cofniecie_wskaznika = STRINGt1_iloscznakow - 1;
-                                        int usunac_znakow = 1;
-                                        if (plik_JSON_linia != plik_JSON_liczbalinii - 2)
-                                        {
-                                            cofniecie_wskaznika = STRINGt1_iloscznakow - 2;
-                                            usunac_znakow = 2;
-                                        }
-
-                                        string STRINGt2 = STRINGt1.Remove(cofniecie_wskaznika, usunac_znakow);
-                                        string STRING = STRINGt2;
-
-
-
-                                        //Console.WriteLine("[linia:" + plik_JSON_linia + "] KEY:" + KEY);
-                                        //Console.WriteLine("[linia:" + plik_JSON_linia + "] STRING:" + STRING);
-
-
-                                        if (KEY != "$id")
-                                        {
-
-                                            string tresc_KEY = KEY;
-
-                                            try
-                                            {
-                                                //Console.WriteLine("indeks wykrytego KEY'a: " + ilosc_wykrytych_VARS);
-
-                                                vars_tmp[ilosc_wykrytych_VARS].Add(tresc_KEY);
-                                            }
-                                            catch
-                                            {
-                                                Blad("BLAD: vars_tmp #1!");
-                                            }
-
-                                            //Console.WriteLine("Linia nr." + plik_JSON_linia + " konwersja klucza o treści: " + tresc_KEY);
-
-                                            ilosc_wykrytych_VARS++;
-
-
-                                            //string tresc_STRING = STRING;
-
-
-                                            string tresc_STRING = STRING
-
-                                            .Replace("\\n", "<br>")
-                                            .Replace("\\\"", "<bs_n1>")
-                                            .Replace("\\\\", "/") // tę linię dodano w PWRlangTools v.1.64 - wykasować ją, jeśli będą występować problemy z parsowaniem pliku JSON wygenerowanego w PWRlangConverter w wersji v.2.03 lub nowszej
-                                            ;
-
-                                            if (tresc_STRING == "")
-                                            {
-                                                tresc_STRING = " ";
-                                            }
-
-                                            /*
-                                            if (tresc_STRING.Contains('{') || tresc_STRING.Contains('}'))
-                                            {
-                                                string rodzajenawiasow = "{|}";
-                                                int iloscnawiasowwlinii = 0;
-                                                Regex regex = new Regex(rodzajenawiasow);
-                                                MatchCollection matchCollection = regex.Matches(tresc_STRING);
-                                                foreach (var match in matchCollection)
-                                                {
-                                                    iloscnawiasowwlinii++;
-                                                }
-                                                if (iloscnawiasowwlinii % 2 == 0)
-                                                {
-                                                    //Console.WriteLine("Linia nr." + plik_JSON_linia + " posiada pary nawiasów {}.");
-
-                                                    if (tresc_STRING.Contains('{') && tresc_STRING.Contains('}'))
-                                                    {
-                                                        string[] tresclinii_nawklamrowy_podzial1 = tresc_STRING.Split(new char[] { '{' });
-
-                                                        for (int i1 = 0; i1 < tresclinii_nawklamrowy_podzial1.Length; i1++)
-                                                        {
-                                                            //Console.WriteLine("tresclinii_nawklamrowy_podzial1[" + i1.ToString() + "]: " + tresclinii_nawklamrowy_podzial1[i1]);
-
-                                                            if (tresclinii_nawklamrowy_podzial1[i1].Contains('}'))
-                                                            {
-                                                                int kl_index = i1 - 1;
-                                                                string tresczwnetrzanawiasuklamrowego = tresclinii_nawklamrowy_podzial1[i1].Split(new char[] { '}' })[0];
-                                                                string nazwazmiennej_w_stringstxt = "<kl" + kl_index + ">"; //np. <kl0>, <kl1>, <kl2> itd.
-
-                                                                //Console.WriteLine("tresczwnetrzanawiasuklamrowego (" + i1.ToString() + "): " + tresczwnetrzanawiasuklamrowego);
-
-                                                                tresclinii_ciagzmiennych += "{" + tresczwnetrzanawiasuklamrowego + "}";
-
-                                                                if (i1 + 1 != tresclinii_nawklamrowy_podzial1.Length) { tresclinii_ciagzmiennych += separator; }
-
-                                                                tresc_STRING = tresc_STRING.Replace("{" + tresczwnetrzanawiasuklamrowego + "}", nazwazmiennej_w_stringstxt);
-
-                                                                //Console.WriteLine("nazwazmiennej_w_stringstxt: " + nazwazmiennej_w_stringstxt);
-                                                                //Console.WriteLine("tresc_STRING: " + tresc_STRING);
-
-
-                                                            }
-
-
-                                                        }
-
-                                                    }
-
-
-
-                                                }
-                                                else
-                                                {
-                                                    Blad("BŁĄD: Linia nr." + plik_JSON_linia + " ma błędną ilość nawiasów {}!");
-                                                }
-
-
-
-                                            }
-                                            else
-                                            {
-                                                //Console.WriteLine("Linia nr." + plik_JSON_linia + " NIE posiada pary nawiasów {}.");
-
-                                                //Console.WriteLine("Linia nr." + plik_JSON_linia + " konwersja string'a o tresci: " + tresc_STRING);
-
-                                                //Console.WriteLine("Linia nr." + plik_JSON_linia + " zawiera VARS: " + tresclinii_ciagzmiennych);
-
-                                            }
-                                            */
-
-
-                                            nowy_plik_transifexCOMstringstxt_sr.WriteLine("<" + plik_JSON_linia + ">" + tresc_STRING);
-
-                                            //vars_tmp[ilosc_wykrytych_STRINGS].Add(tresclinii_ciagzmiennych);
-
-                                            ilosc_wykrytych_STRINGS++;
-
-
-                                        }
-
-                                    }
-
-                                }
-
+                                _ID++;
                             }
-
 
                         }
 
+                        Console.WriteLine("Trwa konwertowanie linii nr. " + aktualnynumerlinii + "/" + danezplikuJSON_listakluczy.Count + " [" + PoliczPostepWProcentach(aktualnynumerlinii, danezplikuJSON_listakluczy.Count) + "%]");
 
-                        Console.WriteLine("Trwa konwertowanie linii nr. " + plik_JSON_linia + "/" + plik_JSON_liczbalinii + " [" + PoliczPostepWProcentach(plik_JSON_linia, plik_JSON_liczbalinii) + "%]");
-
-                        plik_JSON_linia++;
-                    }
-
-                    //Console.WriteLine("ilosc_wykrytych_vars:" + ilosc_wykrytych_VARS);
-                    //Console.WriteLine("vars_tmp[0][0]: " + vars_tmp[0][0]);
-
-
-                    for (int iv1 = 0; iv1 < vars_tmp.Count; iv1++)
-                    {
-                        for (int iv2 = 0; iv2 < vars_tmp[iv1].Count; iv2++)
-                        {
-                            //Console.WriteLine("vars_tmp[" + iv1 + "][" + iv2 + "]: " + vars_tmp[iv1][iv2]);
-
-                            if (iv2 == 0)
-                            {
-                                nowy_plik_transifexCOMkeystxt_sr.Write(vars_tmp[iv1][iv2]);
-                            }
-                            else if (iv2 == 1)
-                            {
-                                if (vars_tmp[iv1][iv2] != "")
-                                {
-                                    nowy_plik_transifexCOMkeystxt_sr.Write(separator + vars_tmp[iv1][iv2] + "\n");
-                                }
-                                else
-                                {
-                                    nowy_plik_transifexCOMkeystxt_sr.Write("\n");
-                                }
-                            }
-
-                            nowy_plik_transifexCOMkeystxt_sr.Write("\n");
-
-                        }
                     }
 
 
 
 
 
-                    nowy_plik_transifexCOMkeystxt_sr.Close();
-                    nowy_plik_transifexCOMstringstxt_sr.Close();
                     plik_JSON_sr.Close();
+                    nowy_plik_transifexCOMkeystxt_sw.Close();
+                    nowy_plik_transifexCOMstringstxt_sw.Close();
 
                     Sukces("Utworzono 2 pliki:");
                     Sukces("-\"" + nazwaplikuJSON + ".keysTransifexCOM.txt\": przeznaczony dla narzędzia PWRlangConverter.");
                     Sukces("-\"" + nazwaplikuJSON + ".stringsTransifexCOM.txt\": przeznaczony dla platformy Transifex.");
-
+                    
 
                 }
                 catch
@@ -1276,9 +1065,9 @@ namespace SElangTools
                     Blad("BŁĄD: Wystapil nieoczekiwany błąd w dostępie do plików.");
                 }
 
+                plik_JSON_fs.Close();
                 nowy_plik_transifexCOMkeystxt_fs.Close();
                 nowy_plik_transifexCOMstringstxt_fs.Close();
-                plik_JSON_fs.Close();
 
 
             }
